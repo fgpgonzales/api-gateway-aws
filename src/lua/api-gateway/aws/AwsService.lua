@@ -97,6 +97,9 @@ end
 -- o.shared_cache_dict - optional. AWSIAMCredentials uses it to store IAM Credentials.
 -- o.doubleUrlEncode - optional. Whether to double url-encode the resource path
 --                                when constructing the canonical request for AWSV4 signature.
+-- o.aws_endpoint - optional. Overrides the default host used to connect to an AWS service.
+-- o.aws_proxy_options - optional. Sets the proxy options used when requesting to an AWS service. 
+--                          It follows the proxy_opts table defined in https://github.com/ledgetech/lua-resty-http#set_proxy_options.
 --
 -- NOTE: class inheirtance inspired from: http://www.lua.org/pil/16.2.html
 function _M:new(o)
@@ -117,6 +120,8 @@ function _M:constructor(o)
     ngx.log(ngx.DEBUG, "init object=" .. s)
     self:throwIfInitParamsInvalid(o)
     self.aws_credentials_provider = self:getCredentialsProvider(o)
+    self.aws_proxy_options = o.aws_proxy_options
+    self.aws_endpoint = o.aws_endpoint
 end
 
 function _M:throwIfInitParamsInvalid(o)
@@ -189,6 +194,9 @@ function _M:getHttpClient()
 end
 
 function _M:getAWSHost()
+    if self.aws_endpoint then
+        return self.aws_endpoint
+    end
     return self.aws_service .. "." .. self.aws_region .. ".amazonaws.com"
 end
 
@@ -251,6 +259,11 @@ end
 --
 function _M:performAction(actionName, arguments, path, http_method, useSSL, timeout, contentType, extra_headers)
     local host = self:getAWSHost()
+
+    if self.aws_endpoint then
+        host = self.aws_endpoint
+    end
+
     local request_method = http_method or "GET"
 
     local arguments = arguments or {}
@@ -320,7 +333,8 @@ function _M:performAction(actionName, arguments, path, http_method, useSSL, time
         method = request_method,
         headers = request_headers,
         keepalive = self.aws_conn_keepalive or 30000, -- 30s keepalive
-        poolsize = self.aws_conn_pool or 100 -- max number of connections allowed in the connection pool
+        poolsize = self.aws_conn_pool or 100, -- max number of connections allowed in the connection pool
+        proxy_opts = self.aws_proxy_options
     }))
 
     if (self.aws_debug == true) then
