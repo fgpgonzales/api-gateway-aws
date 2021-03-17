@@ -41,8 +41,13 @@ function _M:request( req )
         method = req.method,
         body = req.body,
         headers = req.headers,
-        ssl_verify = false
+        ssl_verify = false,
+        proxy_opts = req.proxy_opts
     })
+
+    if type(req.proxy_opts) == "table" then
+      ngx.log(ngx.DEBUG, "http_proxy=", req.proxy_opts.http_proxy, "https_proxy=", req.proxy_opts.https_proxy)
+    end
 
     if not res then
         ngx.log(ngx.ERR, "failed to make request: ", err)
