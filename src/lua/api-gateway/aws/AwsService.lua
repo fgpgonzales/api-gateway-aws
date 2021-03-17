@@ -195,6 +195,7 @@ end
 
 function _M:getAWSHost()
     if self.aws_endpoint then
+        ngx.log(ngx.DEBUG, "Using AWS endpoint host: ", self.aws_endpoint)
         return self.aws_endpoint
     end
     return self.aws_service .. "." .. self.aws_region .. ".amazonaws.com"
@@ -259,10 +260,6 @@ end
 --
 function _M:performAction(actionName, arguments, path, http_method, useSSL, timeout, contentType, extra_headers)
     local host = self:getAWSHost()
-
-    if self.aws_endpoint then
-        host = self.aws_endpoint
-    end
 
     local request_method = http_method or "GET"
 
