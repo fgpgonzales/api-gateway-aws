@@ -8,6 +8,7 @@
 
 local cjson = require "cjson"
 local http = require "api-gateway.aws.httpclient.http"
+local http_resty = require"api-gateway.aws.httpclient.restyhttp"
 local url = require "api-gateway.aws.httpclient.url"
 local awsDate = require "api-gateway.aws.AwsDateConverter"
 local cacheCls = require "api-gateway.cache.cache"
@@ -103,7 +104,7 @@ end
 function AWSIAMCredentials:fetchIamUser()
     ngx.log(ngx.DEBUG, "Fetching IAM User from:",
         self.security_credentials_host, ":", self.security_credentials_port, self.security_credentials_url)
-    local hc1 = http:new()
+    local hc1 = http_resty:new()
 
     local ok, code, headers, status, body = hc1:request{
         host = self.security_credentials_host,
@@ -137,7 +138,7 @@ end
 function AWSIAMCredentials:fetchSecurityCredentialsFromAWS()
     local iamURL = self.security_credentials_url .. self:getIamUser() .. "?DurationSeconds=" .. self.security_credentials_timeout
 
-    local hc1 = http:new()
+    local hc1 = http_resty:new()
 
     local ok, code, headers, status, body = hc1:request{
         host = self.security_credentials_host,

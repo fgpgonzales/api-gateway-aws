@@ -35,7 +35,8 @@ function _M:request( req )
     local ok, code
     local httpc = http.new()
     httpc:set_timeout(req.timeout or 60000)
-
+    req.scheme = req.scheme or "http"
+    
     local res, err = httpc:request_uri(req.scheme .. "://" .. req.host .. ":" .. req.port, {
         path = req.url,
         method = req.method,
